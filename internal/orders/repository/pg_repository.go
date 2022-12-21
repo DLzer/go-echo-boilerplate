@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"strconv"
 	"time"
 
 	"github.com/DLzer/go-echo-boilerplate/internal/models"
@@ -11,6 +12,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/opentracing/opentracing-go"
 	"github.com/pkg/errors"
+
+	productsRepository "github.com/DLzer/go-echo-boilerplate/internal/products/repository"
 )
 
 type ordersRepo struct {
@@ -81,10 +84,32 @@ func (r *ordersRepo) GetByID(ctx context.Context, id string) (*models.OrderRespo
 	span, ctx := opentracing.StartSpanFromContext(ctx, "ordersRepo.GetByID")
 	defer span.Finish()
 
+	// Get orders
 	var o models.OrderResponse
 	if err := r.db.GetContext(ctx, &o, getOrderById, id); err != nil {
 		return nil, errors.Wrap(err, "ordersRepo.GetByID.GetContext")
 	}
+
+	// Get join
+	var join []models.OrderProductsJoin
+	if err := r.db.GetContext(ctx, &join, getOrderProductJoin, id); err != nil {
+		return nil, errors.Wrap(err, "ordersRepo.GetByID.GetContext")
+	}
+
+	// Get products
+	var p []*models.ProductResponse
+	productsRepo := productsRepository.NewProductsRepository(r.db)
+	for _, x := range join {
+		product, err := productsRepo.GetByID(ctx, strconv.FormatUint(x.ProductID, 10))
+		if err != nil {
+			return nil, errors.Wrap(err, "ordersRepo.GetByID.[Product]")
+		}
+
+		p = append(p, product)
+	}
+
+	// Add products to order response
+	o.Products = p
 
 	return &o, nil
 }
@@ -123,6 +148,26 @@ func (r *ordersRepo) All(ctx context.Context, pq *utils.PaginationQuery) (*model
 			return nil, errors.Wrap(err, "ordersRepo.GetAll.StructScan")
 		}
 		list = append(list, n)
+
+		// Get join
+		var join []models.OrderProductsJoin
+		if err := r.db.GetContext(ctx, &join, getOrderProductJoin, n.ID); err != nil {
+			return nil, errors.Wrap(err, "ordersRepo.GetByID.GetContext")
+		}
+
+		// Get products
+		var p []*models.ProductResponse
+		productsRepo := productsRepository.NewProductsRepository(r.db)
+		for _, x := range join {
+			product, err := productsRepo.GetByID(ctx, strconv.FormatUint(x.ProductID, 10))
+			if err != nil {
+				return nil, errors.Wrap(err, "ordersRepo.GetByID.[Product]")
+			}
+
+			p = append(p, product)
+		}
+
+		n.Products = p
 	}
 
 	if err = rows.Err(); err != nil {

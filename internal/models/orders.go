@@ -14,11 +14,19 @@ type OrderRequest struct {
 
 // OrderResponse is used to represent a order response model
 type OrderResponse struct {
-	ID      uint64     `json:"id"`
-	Total   float64    `json:"name"`
-	Created *time.Time `json:"created,omitempty"`
-	Updated *time.Time `json:"updated,omitempty"`
-	Deleted bool       `json:"deleted,omitempty"`
+	ID       uint64             `json:"id"`
+	Total    float64            `json:"name"`
+	Products []*ProductResponse `json:"products,omitempty"`
+	Created  *time.Time         `json:"created,omitempty"`
+	Updated  *time.Time         `json:"updated,omitempty"`
+	Deleted  bool               `json:"deleted,omitempty"`
+}
+
+// OrderProductsJoin is used to represent a join between orders and products
+type OrderProductsJoin struct {
+	ID        uint64
+	OrderID   uint64
+	ProductID uint64
 }
 
 // OrderList is used to represent a pagination query for orders
