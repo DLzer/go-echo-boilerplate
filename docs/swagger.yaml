@@ -1,0 +1,300 @@
+basePath: /v1
+definitions:
+  models.OrderList:
+    properties:
+      has_more:
+        type: boolean
+      orders:
+        items:
+          $ref: '#/definitions/models.OrderResponse'
+        type: array
+      page:
+        type: integer
+      size:
+        type: integer
+      total_count:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  models.OrderResponse:
+    properties:
+      created:
+        type: string
+      deleted:
+        type: boolean
+      id:
+        type: integer
+      name:
+        type: number
+      updated:
+        type: string
+    type: object
+  models.ProductList:
+    properties:
+      has_more:
+        type: boolean
+      page:
+        type: integer
+      products:
+        items:
+          $ref: '#/definitions/models.ProductResponse'
+        type: array
+      size:
+        type: integer
+      total_count:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  models.ProductRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    type: object
+  models.ProductResponse:
+    properties:
+      created:
+        type: string
+      deleted:
+        type: boolean
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      price:
+        type: number
+      updated:
+        type: string
+    type: object
+info:
+  contact:
+    name: DLzer
+    url: https://github.com/Dlzer
+  description: Boilerplate code for an Echo API
+  title: Echo Boilerplate
+  version: "1.0"
+paths:
+  /orders:
+    get:
+      consumes:
+      - application/json
+      description: Get all orders handler
+      parameters:
+      - description: page number
+        format: page
+        in: query
+        name: page
+        type: integer
+      - description: number of elements per page
+        format: size
+        in: query
+        name: size
+        type: integer
+      - description: filter name
+        format: orderBy
+        in: query
+        name: orderBy
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.OrderList'
+      summary: Get all orders
+      tags:
+      - Orders
+  /orders/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete by id orders handler
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      summary: Delete orders
+      tags:
+      - Orders
+    get:
+      consumes:
+      - application/json
+      description: Get by id orders handler
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.OrderResponse'
+      summary: Get by id orders
+      tags:
+      - Orders
+  /orders/create:
+    post:
+      consumes:
+      - application/json
+      description: Create orders handler
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.OrderResponse'
+      summary: Create orders
+      tags:
+      - Orders
+  /orders/update/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Update orders handler
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.OrderResponse'
+      summary: Update orders
+      tags:
+      - Orders
+  /products:
+    get:
+      consumes:
+      - application/json
+      description: Get all products handler
+      parameters:
+      - description: page number
+        format: page
+        in: query
+        name: page
+        type: integer
+      - description: number of elements per page
+        format: size
+        in: query
+        name: size
+        type: integer
+      - description: filter name
+        format: orderBy
+        in: query
+        name: orderBy
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ProductList'
+      summary: Get all products
+      tags:
+      - Products
+  /products/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete by id products handler
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      summary: Delete products
+      tags:
+      - Products
+    get:
+      consumes:
+      - application/json
+      description: Get by id products handler
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ProductResponse'
+      summary: Get by id products
+      tags:
+      - Products
+  /products/create:
+    post:
+      consumes:
+      - application/json
+      description: Create products handler
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.ProductRequest'
+      summary: Create products
+      tags:
+      - Products
+  /products/update/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Update products handler
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.ProductRequest'
+      summary: Update products
+      tags:
+      - Products
+swagger: "2.0"

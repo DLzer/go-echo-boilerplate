@@ -1,0 +1,42 @@
+linters:
+  disable-all: true
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused
+    - asciicheck
+    - bodyclose
+    - dogsled
+    - exhaustive
+    - exportloopref
+    - gocognit
+    - goconst
+    - gofmt
+    - goheader
+    - goimports
+    - gosec
+    - misspell
+    - nakedret
+    - nestif
+    - unconvert
+    - unparam
+    - whitespace
+
+issues:
+  exclude:
+    - "composite literal uses unkeyed fields"
+    - "Potential HTTP request made with variable url"
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gosec
+        - noctx
+        - unparam
+        - bodyclose
+    - path: fixtures.go
+      linters:
+        - gosec
