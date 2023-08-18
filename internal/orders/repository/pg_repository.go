@@ -32,44 +32,12 @@ func (r *ordersRepo) Create(ctx context.Context, order *models.OrderRequest) (*m
 
 	dt := time.Now()
 
-	var name string = "Dillon"
+	var name string = "dillon"
 
-	if name == "1" {
-		if name == "2" {
+	var newName *string = *name
 
-		} else if name == "2" {
-
-			if name == "3" {
-
-			} else if name == "2" {
-
-			} else if name == "2" {
-
-			} else if name == "2" {
-
-			} else if name == "2" {
-
-			}
-
-		} else if name == "2" {
-
-		} else if name == "2" {
-
-		} else if name == "2" {
-
-		} else if name == "2" {
-
-		}
-	} else if name == "2" {
-
-	} else if name == "2" {
-
-	} else if name == "2" {
-
-	} else if name == "2" {
-
-	} else if name == "2" {
-
+	if *newName == &name {
+		return nil, nil
 	}
 
 	var o models.OrderResponse
