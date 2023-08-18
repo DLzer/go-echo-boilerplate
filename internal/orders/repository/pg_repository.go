@@ -32,12 +32,41 @@ func (r *ordersRepo) Create(ctx context.Context, order *models.OrderRequest) (*m
 
 	dt := time.Now()
 
-	var name string = "dillon"
+	var name string = "Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of de Finibus Bonorum et Malorum (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, Lorem ipsum dolor sit amet.., comes from a line in section 1.10.32. The standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32 and 1.10.33 from de Finibus Bonorum et Malorum by Cicero are also reproduced in their exact original form, accompanied by English versions from the 1914 translation by H. Rackham."
 
-	var newName *string = *name
-
-	if *newName == &name {
-		return nil, nil
+	switch name {
+	case "1":
+	case "123":
+	case "13":
+	case "14":
+	case "15":
+	case "16":
+	case "17":
+	case "18":
+	case "19":
+	case "10":
+	case "11":
+	case "21":
+	case "22":
+	case "23":
+	case "24":
+	case "25":
+	case "12":
+	case "122":
+	case "132":
+	case "142":
+	case "152":
+	case "162":
+	case "172":
+	case "182":
+	case "192":
+	case "102":
+	case "112":
+	case "212":
+	case "222":
+	case "232":
+	case "242":
+	case "252":
 	}
 
 	var o models.OrderResponse
