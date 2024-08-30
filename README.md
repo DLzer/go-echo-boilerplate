@@ -11,6 +11,8 @@ Features:
     - Watchtower
     - Traefik
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/DLzer/go-echo-boilerplate)](https://goreportcard.com/report/github.com/DLzer/go-echo-boilerplate) ![GitHub Release](https://img.shields.io/github/v/release/DLzer/go-echo-boilerplate)
+
 ## Prerequesites
 - Go >= v1.22.4
 - Docker
