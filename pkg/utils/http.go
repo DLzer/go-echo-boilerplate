@@ -2,17 +2,14 @@ package utils
 
 import (
 	"context"
-	"encoding/json"
-	"io"
+	"errors"
+	"mime/multipart"
 	"net/http"
 	"time"
 
-	"github.com/DLzer/go-echo-boilerplate/config"
 	"github.com/DLzer/go-echo-boilerplate/pkg/httpErrors"
 	"github.com/DLzer/go-echo-boilerplate/pkg/logger"
-	"github.com/DLzer/go-echo-boilerplate/pkg/sanitize"
 	"github.com/labstack/echo/v4"
-	"github.com/pkg/errors"
 )
 
 // Get request id from echo context
@@ -34,57 +31,6 @@ func GetCtxWithReqID(c echo.Context) (context.Context, context.CancelFunc) {
 func GetRequestCtx(c echo.Context) context.Context {
 	return context.WithValue(c.Request().Context(), ReqIDCtxKey{}, GetRequestID(c))
 }
-
-// Get config path for local or docker
-func GetConfigPath(configPath string) string {
-	if configPath == "docker" {
-		return "./config-docker"
-	}
-	return "./config/config-local"
-}
-
-// Configure jwt cookie
-func ConfigureJWTCookie(cfg *config.Config, jwtToken string) *http.Cookie {
-	return &http.Cookie{
-		Name:       cfg.Cookie.Name,
-		Value:      jwtToken,
-		Path:       "/",
-		RawExpires: "",
-		MaxAge:     cfg.Cookie.MaxAge,
-		Secure:     cfg.Cookie.Secure,
-		HttpOnly:   cfg.Cookie.HTTPOnly,
-		SameSite:   0,
-	}
-}
-
-// Configure jwt cookie
-func CreateSessionCookie(cfg *config.Config, session string) *http.Cookie {
-	return &http.Cookie{
-		Name:  cfg.Session.Name,
-		Value: session,
-		Path:  "/",
-		// Domain: "/",
-		// Expires:    time.Now().Add(1 * time.Minute),
-		RawExpires: "",
-		MaxAge:     cfg.Session.Expire,
-		Secure:     cfg.Cookie.Secure,
-		HttpOnly:   cfg.Cookie.HTTPOnly,
-		SameSite:   0,
-	}
-}
-
-// Delete session
-func DeleteSessionCookie(c echo.Context, sessionName string) {
-	c.SetCookie(&http.Cookie{
-		Name:   sessionName,
-		Value:  "",
-		Path:   "/",
-		MaxAge: -1,
-	})
-}
-
-// UserCtxKey is a key used for the User object in the context
-type UserCtxKey struct{}
 
 // Get user ip address
 func GetIPAddress(c echo.Context) string {
@@ -120,24 +66,19 @@ func ReadRequest(ctx echo.Context, request interface{}) error {
 	return validate.StructCtx(ctx.Request().Context(), request)
 }
 
-// Read sanitize and validate request
-func SanitizeRequest(ctx echo.Context, request interface{}) error {
-	body, err := io.ReadAll(ctx.Request().Body)
+// Read an image and return a multipart file
+func ReadImage(ctx echo.Context, field string) (*multipart.FileHeader, error) {
+	image, err := ctx.FormFile(field)
 	if err != nil {
-		return err
-	}
-	defer ctx.Request().Body.Close()
-
-	sanBody, err := sanitize.SanitizeJSON(body)
-	if err != nil {
-		return ctx.NoContent(http.StatusBadRequest)
+		return nil, errors.New("ctx.FormFile")
 	}
 
-	if err = json.Unmarshal(sanBody, request); err != nil {
-		return err
+	// Check content type of image
+	if err = CheckImageContentType(image); err != nil {
+		return nil, err
 	}
 
-	return validate.StructCtx(ctx.Request().Context(), request)
+	return image, nil
 }
 
 var allowedImagesContentTypes = map[string]string{
@@ -152,6 +93,7 @@ var allowedImagesContentTypes = map[string]string{
 	"image/vnd.microsoft.icon": "ico",
 }
 
+// Check that the image contentType is in the allowed list
 func CheckImageFileContentType(fileContent []byte) (string, error) {
 	contentType := http.DetectContentType(fileContent)
 

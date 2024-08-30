@@ -1,18 +1,20 @@
 package main
 
 import (
-	"context"
+	"embed"
 	"log"
-	"os"
 
-	"github.com/DLzer/go-echo-boilerplate/config"
+	"github.com/DLzer/go-echo-boilerplate/internal/config"
+	postgres "github.com/DLzer/go-echo-boilerplate/internal/database"
 	"github.com/DLzer/go-echo-boilerplate/internal/server"
-	mongodb "github.com/DLzer/go-echo-boilerplate/pkg/db/mongodb"
-	"github.com/DLzer/go-echo-boilerplate/pkg/db/postgres"
-	"github.com/DLzer/go-echo-boilerplate/pkg/db/s3"
 	"github.com/DLzer/go-echo-boilerplate/pkg/logger"
 	"github.com/DLzer/go-echo-boilerplate/pkg/utils"
+	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/pressly/goose/v3"
 )
+
+//go:embed migrations/*.sql
+var embedMigrations embed.FS
 
 // @title Echo Boilerplate
 // @version 1.0
@@ -23,17 +25,18 @@ import (
 func main() {
 	log.Println("=========Starting API Server==========")
 
-	// Loading config
-	configPath := utils.GetConfigPath(os.Getenv("config"))
-
-	cfgFile, err := config.LoadConfig(configPath)
+	// Get config path
+	cfgPath := utils.GetConfigPath("local")
+	// Get config file
+	cfgFile, err := config.LoadConfig(cfgPath)
 	if err != nil {
-		log.Fatalf("LoadConfig: %v", err)
+		log.Fatalf("LoadConfigError: %v", err)
 	}
-	// Parse ( Unmarshal ) config
+
+	// Parse config file
 	cfg, err := config.ParseConfig(cfgFile)
 	if err != nil {
-		log.Fatalf("ParseConfig: %v", err)
+		log.Fatalf("ParseConfigError: %v", err)
 	}
 
 	// Starting Logger
@@ -46,32 +49,26 @@ func main() {
 	if err != nil {
 		appLogger.Fatalf("Postgres init: %s", err)
 	} else {
-		appLogger.Infof("Postgres connected, Status: %#v", psqlDB.Stats())
+		appLogger.Infof("Postgres connected, Status: %#v", "hello")
 	}
 
-	// Mongo Connection
-	mongo, err := mongodb.NewMongoDB(cfg)
-	if err != nil {
-		appLogger.Fatalf("Mongo Init: %s", err)
+	// Setup Embed and Postgres Dialect
+	goose.SetBaseFS(embedMigrations)
+	if err := goose.SetDialect("postgres"); err != nil {
+		panic(err)
 	}
-	appLogger.Info("Mongo Connected")
-	// Defer closing the mongo connection for re-use
-	defer func() {
-		if err = mongo.MongoClient.Disconnect(context.TODO()); err != nil {
-			panic(err)
-		}
-	}()
 
-	// S3 Connection
-	s3Client, err := s3.NewS3Client(cfg.S3.SpacesKey, cfg.S3.SpacesSecret, cfg.S3.SpacesEndpoint, cfg.S3.SpacesRegion)
-	if err != nil {
-		appLogger.Fatalf("S3 init: %s", err)
-	} else {
-		appLogger.Info("S3 Connected")
+	// Run Migrations
+	db := stdlib.OpenDBFromPool(psqlDB)
+	if err := goose.Up(db, "migrations"); err != nil {
+		panic(err)
+	}
+	if err := db.Close(); err != nil {
+		panic(err)
 	}
 
 	// Start the server
-	s := server.NewServer(cfg, psqlDB, mongo, s3Client, appLogger)
+	s := server.NewServer(cfg, psqlDB, appLogger)
 	if err = s.Run(); err != nil {
 		log.Fatal(err)
 	}

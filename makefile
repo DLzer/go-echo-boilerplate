@@ -19,9 +19,17 @@ migrate_down:
 # ==============================================================================
 # Docker compose commands
 
-develop:
-	echo "Starting docker environment"
-	docker-compose -f docker-compose.dev.yml up --build
+prod:
+	echo "Starting docker prod environment"
+	docker-compose -f docker-compose.prod.yml up --build
+
+local:
+	echo "Starting local environment"
+	docker-compose -f docker-compose.local.yml up --build
+
+dockerbuild:
+	echo "Starting Docker Build"
+	docker build . -t github.com/DLzer/go-echo-boilerplate && docker run -p 5000:5000 github.com/DLzer/go-echo-boilerplate:latest
 
 # ==============================================================================
 # Tools commands

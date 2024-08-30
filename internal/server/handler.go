@@ -4,19 +4,14 @@ import (
 	"net/http"
 	"strings"
 
-	apiMiddlewares "github.com/DLzer/go-echo-boilerplate/internal/middleware"
 	"github.com/DLzer/go-echo-boilerplate/pkg/metric"
+	apiMiddlewares "github.com/DLzer/go-echo-boilerplate/pkg/middleware"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
-	ordersRepository "github.com/DLzer/go-echo-boilerplate/internal/orders/repository"
-	productsRepository "github.com/DLzer/go-echo-boilerplate/internal/products/repository"
-
-	ordersService "github.com/DLzer/go-echo-boilerplate/internal/orders/service"
-	productsService "github.com/DLzer/go-echo-boilerplate/internal/products/service"
-
-	ordersHttp "github.com/DLzer/go-echo-boilerplate/internal/orders/controller/http"
-	productsHttp "github.com/DLzer/go-echo-boilerplate/internal/products/controller/http"
+	usersHttp "github.com/DLzer/go-echo-boilerplate/internal/users/http"
+	usersRepository "github.com/DLzer/go-echo-boilerplate/internal/users/repository"
+	usersService "github.com/DLzer/go-echo-boilerplate/internal/users/service"
 )
 
 // Map Server Handlers
@@ -31,17 +26,9 @@ func (s *Server) MapHandlers(e *echo.Echo) error {
 		s.cfg.Metrics.ServiceName,
 	)
 
-	// Init Repositories
-	ordersRepo := ordersRepository.NewOrdersRepository(s.db)
-	productsRepo := productsRepository.NewProductsRepository(s.db)
-
-	// Init Services
-	ordersServ := ordersService.NewOrdersService(s.cfg, ordersRepo, s.logger)
-	productsServ := productsService.NewProductsService(s.cfg, productsRepo, s.logger)
-
-	// Init Handlers
-	ordersHandler := ordersHttp.NewOrdersHandlers(s.cfg, ordersServ, s.logger)
-	productsHandler := productsHttp.NewProductsHandlers(s.cfg, productsServ, s.logger)
+	usersPgRepo := usersRepository.NewUsersPgRepo(s.db)
+	usersService := usersService.NewUsersService(s.cfg, usersPgRepo, s.logger)
+	usersHandler := usersHttp.NewUsersHandler(s.cfg, usersService, s.logger)
 
 	// Swagger Setup
 	// docs.SwaggerInfo.Title = "Echo Rest API"
@@ -73,25 +60,26 @@ func (s *Server) MapHandlers(e *echo.Echo) error {
 	if s.cfg.Server.Debug {
 		e.Use(mw.DebugMiddleware)
 	}
-	e.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
-		Skipper: func(c echo.Context) bool {
-			return strings.Contains(c.Request().URL.Path, "/health")
-		},
-		KeyLookup: "header:x-api-key",
-		Validator: func(key string, c echo.Context) (bool, error) {
-			return key == s.cfg.Server.ApiKey, nil
-		},
-	}))
+
+	if s.cfg.Server.Mode != "Development" {
+		e.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
+			Skipper: func(c echo.Context) bool {
+				return strings.Contains(c.Request().URL.Path, "/health")
+			},
+			KeyLookup: "header:x-api-key",
+			Validator: func(key string, c echo.Context) (bool, error) {
+				return key == s.cfg.Server.ApiKey, nil
+			},
+		}))
+	}
 
 	// Define Route Group
 	v1 := e.Group("/v1")
-	ordersGroup := v1.Group("/orders")
-	productsGroup := v1.Group("/products")
+	usersGroup := v1.Group("/users")
 	health := v1.Group("/health")
 
 	// Map groups to handlers
-	ordersHttp.MapOrderRoutes(ordersGroup, ordersHandler)
-	productsHttp.MapProductsRoutes(productsGroup, productsHandler)
+	usersHttp.UserRoutes(usersGroup, usersHandler, *mw)
 
 	// Health route function
 	health.GET("", func(c echo.Context) error {

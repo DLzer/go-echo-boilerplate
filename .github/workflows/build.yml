@@ -1,20 +1,26 @@
-name: Build
+name: CICD
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    types: [opened, synchronize, reopened]
+    tags:
+      - "v*.*.*-release"
 jobs:
-  sonarcloud:
-    name: SonarCloud
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Dev
+        uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # Sonar Token for catching
+          ref: docker
+
+      - name: "Create env file"
+        run: |
+          echo "${{ secrets.ENV }}" > configs/local.yaml
+
+      # Initiate your registry login here
+
+      - name: Build Image
+        run: docker build -f docker/Dockerfile -t ${{ secrets.REGISTRY_NAME }}/echo-api:latest .
+
+      - name: Push Image
+        run: docker push ${{ secrets.REGISTRY_NAME }}/echo-api:latest

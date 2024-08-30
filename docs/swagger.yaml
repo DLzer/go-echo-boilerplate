@@ -1,76 +1,59 @@
 basePath: /v1
 definitions:
-  models.OrderList:
-    properties:
-      has_more:
-        type: boolean
-      orders:
-        items:
-          $ref: '#/definitions/models.OrderResponse'
-        type: array
-      page:
-        type: integer
-      size:
-        type: integer
-      total_count:
-        type: integer
-      total_pages:
-        type: integer
-    type: object
-  models.OrderResponse:
+  models.User:
+    description: User base model with Roles array
     properties:
       created:
+        example: "2024-01-01 00:01:22"
         type: string
-      deleted:
-        type: boolean
-      id:
-        type: integer
-      name:
-        type: number
-      updated:
+      deleted_date:
+        example: "2024-01-01 00:01:22"
         type: string
-    type: object
-  models.ProductList:
-    properties:
-      has_more:
+      email:
+        example: someuser@name.com
+        type: string
+      first_name:
+        example: Geoff
+        type: string
+      is_deleted:
+        example: false
         type: boolean
-      page:
-        type: integer
-      products:
+      last_name:
+        example: Goldblum
+        type: string
+      roles:
+        example:
+        - '[USER]'
         items:
-          $ref: '#/definitions/models.ProductResponse'
+          type: string
         type: array
-      size:
-        type: integer
-      total_count:
-        type: integer
-      total_pages:
-        type: integer
-    type: object
-  models.ProductRequest:
-    properties:
-      description:
-        type: string
-      name:
-        type: string
-      price:
-        type: number
-    type: object
-  models.ProductResponse:
-    properties:
-      created:
-        type: string
-      deleted:
-        type: boolean
-      description:
-        type: string
-      id:
-        type: integer
-      name:
-        type: string
-      price:
-        type: number
       updated:
+        example: "2024-01-01 00:01:22"
+        type: string
+      uuid:
+        example: adcce0b7-0b38-4bd3-bfa1-d9bf7c4c79b4
+        type: string
+    type: object
+  models.UserCreate:
+    description: User Create Model
+    properties:
+      email:
+        example: someuser@name.com
+        type: string
+      first_name:
+        example: Geoff
+        type: string
+      last_name:
+        example: Goldblum
+        type: string
+      roles:
+        example:
+        - '[USER]'
+        items:
+          type: string
+        type: array
+      uuid:
+        example: adcce0b7-0b38-4bd3-bfa1-d9bf7c4c79b4
         type: string
     type: object
 info:
@@ -81,11 +64,9 @@ info:
   title: Echo Boilerplate
   version: "1.0"
 paths:
-  /orders:
+  /users:
     get:
-      consumes:
-      - application/json
-      description: Get all orders handler
+      description: Accepts pagination query parameters, and returns a list of Users.
       parameters:
       - description: page number
         format: page
@@ -107,36 +88,33 @@ paths:
       responses:
         "200":
           description: OK
-          schema:
-            $ref: '#/definitions/models.OrderList'
-      summary: Get all orders
+      summary: Get user list
       tags:
-      - Orders
-  /orders/{id}:
-    delete:
+      - Users
+    post:
       consumes:
       - application/json
-      description: Delete by id orders handler
+      description: Accepts a user create model
       parameters:
-      - description: id
-        in: path
-        name: id
-        required: true
-        type: integer
+      - description: User
+        in: body
+        name: payload
+        schema:
+          $ref: '#/definitions/models.UserCreate'
       produces:
       - application/json
       responses:
         "200":
-          description: ok
+          description: OK
           schema:
-            type: string
-      summary: Delete orders
+            $ref: '#/definitions/models.User'
+      summary: Creates a User
       tags:
-      - Orders
-    get:
-      consumes:
-      - application/json
-      description: Get by id orders handler
+      - Users
+  /users/{id}:
+    delete:
+      description: Accepts a user UUID as a path parameter, and returns a true or
+        false body.
       parameters:
       - description: id
         in: path
@@ -149,30 +127,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.OrderResponse'
-      summary: Get by id orders
+            type: boolean
+      summary: Deletes a user
       tags:
-      - Orders
-  /orders/create:
-    post:
-      consumes:
-      - application/json
-      description: Create orders handler
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/models.OrderResponse'
-      summary: Create orders
-      tags:
-      - Orders
-  /orders/update/{id}:
-    patch:
-      consumes:
-      - application/json
-      description: Update orders handler
+      - Users
+    get:
+      description: Accepts a UUID as a query parameter, and returns the User
       parameters:
       - description: id
         in: path
@@ -182,119 +142,54 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
-            $ref: '#/definitions/models.OrderResponse'
-      summary: Update orders
+            $ref: '#/definitions/models.User'
+      summary: Get user by ID
       tags:
-      - Orders
-  /products:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: Accepts a user to update, responds with the updated users
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: A user
+        in: body
+        name: payload
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+      summary: Update a user
+      tags:
+      - Users
+  /users/search:
     get:
       consumes:
       - application/json
-      description: Get all products handler
+      description: Accepts a user name as a query param, performs a tsvector search
+        and returns a list of matches
       parameters:
-      - description: page number
-        format: page
-        in: query
-        name: page
-        type: integer
-      - description: number of elements per page
-        format: size
-        in: query
-        name: size
-        type: integer
       - description: filter name
-        format: orderBy
+        format: name
         in: query
-        name: orderBy
-        type: integer
+        name: name
+        type: string
       produces:
       - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.ProductList'
-      summary: Get all products
+      responses: {}
+      summary: Performs a TSVector Search
       tags:
-      - Products
-  /products/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete by id products handler
-      parameters:
-      - description: id
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: ok
-          schema:
-            type: string
-      summary: Delete products
-      tags:
-      - Products
-    get:
-      consumes:
-      - application/json
-      description: Get by id products handler
-      parameters:
-      - description: id
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.ProductResponse'
-      summary: Get by id products
-      tags:
-      - Products
-  /products/create:
-    post:
-      consumes:
-      - application/json
-      description: Create products handler
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/models.ProductRequest'
-      summary: Create products
-      tags:
-      - Products
-  /products/update/{id}:
-    patch:
-      consumes:
-      - application/json
-      description: Update products handler
-      parameters:
-      - description: id
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/models.ProductRequest'
-      summary: Update products
-      tags:
-      - Products
+      - Users
 swagger: "2.0"

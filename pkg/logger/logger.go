@@ -3,7 +3,7 @@ package logger
 import (
 	"os"
 
-	"github.com/DLzer/go-echo-boilerplate/config"
+	"github.com/DLzer/go-echo-boilerplate/internal/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

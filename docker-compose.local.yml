@@ -1,0 +1,69 @@
+services:
+  api:
+    container_name: echo_api
+    build:
+      context: ./
+      dockerfile: local.Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8008:8008"
+      - "5555:5555"
+      - "7070:7070"
+    environment:
+      - PORT=8008
+    security_opt:
+      - "seccomp:unconfined"
+    cap_add:
+      - SYS_PTRACE
+    restart: always
+    volumes:
+      - ./:/app
+    networks:
+      - web_api
+
+  db:
+    image: 'postgres:latest'
+    environment:
+      POSTGRES_USER: echo_user 
+      POSTGRES_PASSWORD: somePassword 
+      POSTGRES_DB: echo
+    ports:
+      - 5432:5432
+    networks:
+      - web_api
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'echo_user', '-d', 'echo']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - local_pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8888:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: dev@name.com
+      PGADMIN_DEFAULT_PASSWORD: password
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - web_api
+
+networks:
+  web_api:
+    driver: bridge
+
+volumes:
+ local_pgdata:
+ pgadmin-data:

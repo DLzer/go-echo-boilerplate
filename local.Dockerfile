@@ -2,7 +2,7 @@
 FROM golang:1.22.4-alpine3.20 as base
 
 #ENV GO111MODULE=on
-ENV config=production
+ENV config=local
 
 # Set the current working directory inside the container 
 WORKDIR /build
@@ -31,7 +31,7 @@ FROM scratch
 
 # Run the config as a different user than root for safety
 WORKDIR /root/
-ENV config=production
+ENV config=local
 
 # Copy the Pre-built binary file from the previous stage. Observe we also copied the .env file
 COPY --from=base /build/cmd/api/main .
@@ -40,6 +40,8 @@ COPY --from=base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 # Expose port 5000 to the outside world
 EXPOSE 8008
+EXPOSE 5555
+EXPOSE 7070
 
 #Command to run the executable
 CMD ["./main"]

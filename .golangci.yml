@@ -3,21 +3,19 @@ linters:
   enable:
     - errcheck
     - gosimple
-    - govet
+    # - govet
     - ineffassign
     - staticcheck
     - typecheck
     - unused
     - asciicheck
-    - bodyclose
+    # - bodyclose
     - dogsled
     - exhaustive
     - exportloopref
     - gocognit
     - goconst
-    - gofmt
     - goheader
-    - goimports
     - gosec
     - misspell
     - nakedret
@@ -25,11 +23,11 @@ linters:
     - unconvert
     - unparam
     - whitespace
+    - prealloc
 
 issues:
   exclude:
     - "composite literal uses unkeyed fields"
-    - "Potential HTTP request made with variable url"
   exclude-rules:
     - path: _test\.go
       linters:

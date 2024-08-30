@@ -8,11 +8,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/DLzer/go-echo-boilerplate/config"
-	"github.com/DLzer/go-echo-boilerplate/pkg/db/mongodb"
+	"github.com/DLzer/go-echo-boilerplate/internal/config"
 	"github.com/DLzer/go-echo-boilerplate/pkg/logger"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/jmoiron/sqlx"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
 )
 
@@ -25,15 +23,13 @@ const (
 type Server struct {
 	echo   *echo.Echo
 	cfg    *config.Config
-	db     *sqlx.DB
-	s3     *s3.S3
-	mongo  *mongodb.MongoDb
+	db     *pgxpool.Pool
 	logger logger.Logger
 }
 
 // NewServer New Server constructor
-func NewServer(cfg *config.Config, db *sqlx.DB, mongo *mongodb.MongoDb, s3 *s3.S3, logger logger.Logger) *Server {
-	return &Server{echo: echo.New(), cfg: cfg, db: db, mongo: mongo, s3: s3, logger: logger}
+func NewServer(cfg *config.Config, db *pgxpool.Pool, logger logger.Logger) *Server {
+	return &Server{echo: echo.New(), cfg: cfg, db: db, logger: logger}
 }
 
 func (s *Server) Run() error {

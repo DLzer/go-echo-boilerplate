@@ -1,0 +1,63 @@
+services:
+  api:
+    container_name: echo_api
+    image: 'registry.docker.com/mycontinaers/myapi:latest'
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "traefik.enable=true"
+      - "traefik.http.routers.echo_api.rule=Host(`echoapi.mysite.com`)"
+      - "traefik.http.services.echo_api.loadbalancer.server.port=8008"
+      - "traefik.http.routers.echo_api.entrypoints=websecure"
+      - "traefik.http.routers.echo_api.tls=true"
+      - "traefik.http.routers.echo_api.tls.certresolver=cloudflare"
+    ports:
+      - "8008:8008"
+    environment:
+      - PORT=8008
+    security_opt:
+      - "seccomp:unconfined"
+    cap_add:
+      - SYS_PTRACE
+    restart: always
+    volumes:
+      - ./:/app
+    networks:
+      - web_api
+
+  watchtower:
+      image: containrrr/watchtower
+      environment:
+        - TZ=America/New_York
+        - WATCHTOWER_LABEL_ENABLE=true
+        - WATCHTOWER_NOTIFICATIONS_HOSTNAME=My API
+        - WATCHTOWER_CLEANUP=true
+        - WATCHTOWER_NOTIFICATION_URL=discord://{DISCORD_TOKEN}@{WEBHOOK_ID}
+        - WATCHTOWER_NOTIFICATION_TEMPLATE={{range .}}{{.Message}}{{println}}{{end}}
+        - WATCHTOWER_NOTIFICATIONS=shoutrrr
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+        - /root/.docker/config.json:/config.json
+      command: --interval 600
+
+  reverse-proxy:
+    image: traefik:v3.1.2
+    command:
+      - --api.insecure=true
+      - --providers.docker
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --providers.file.filename=/dynamic_conf.yml
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./certs:/certs
+      - ./dynamic_conf.yml:/dynamic_conf.yml
+    networks:
+      - web_api
+
+networks:
+  web_api:
+    driver: bridge
