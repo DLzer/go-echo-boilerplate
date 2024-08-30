@@ -24,7 +24,6 @@ pgdata
 vendor
 configs/development.yaml
 configs/production.yaml
-configs/local.yaml
 
 # Avatars storage directory
 avatars/
