@@ -98,3 +98,9 @@ logs-local:
 
 profile-web:
 	go tool pprof -http=":8000" pprofbin http://localhost:5555
+
+# ==============================================================================
+# Versioning
+
+release:
+	goreleaser release --clean
